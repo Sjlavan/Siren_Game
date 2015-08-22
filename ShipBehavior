@@ -1,0 +1,79 @@
+using UnityEngine;
+using System.Collections;
+
+public class ShipBehavior : MonoBehaviour {
+	public Transform currentShipLocation;
+	Vector3 tempShipLocation;
+	Vector3 beginRayCastFront;
+	float shipXPos;
+	float speed;
+	float movementSpeed;
+	float mostCurrentXValue; 
+
+	//Obstacle Avoidance Variables
+	private float range; 
+	private bool isThereAnyThing;
+	public GameObject target;
+	private float rotationSpeed;
+	private RaycastHit hit; 
+
+
+	// Use this for initialization
+	void Start () {
+		isThereAnyThing = false;
+		range = 0.3f; 
+		rotationSpeed = 16.0f; 
+		speed = Random.Range(0.005f, 0.02f);
+		movementSpeed = Random.Range (0.5f, 1.0f);
+		tempShipLocation = transform.position;
+		shipXPos = tempShipLocation.x;
+		beginRayCastFront = transform.position;
+		beginRayCastFront.x -= 0.9f;
+	}
+	
+	// Update is called once per frame
+	void Update () {
+
+		MoveShip ();
+	}
+
+	void MoveShip(){
+		RaycastHit hit;
+
+		//Move Ship in Forward Direction Relative to own space
+		transform.position -= transform.right * Time.deltaTime * movementSpeed;
+
+		//Trace a Ray in front of Ship
+		mostCurrentXValue = transform.position.x;
+		beginRayCastFront.y = transform.position.y;
+		beginRayCastFront.z = transform.position.z;
+		beginRayCastFront.x =  mostCurrentXValue-= 0.9f;
+
+
+		//If the ship detects something in it's raycast it turns
+		Vector3 fwd = transform.TransformDirection(Vector3.left);
+		if (Physics.Raycast (beginRayCastFront, fwd, 1.5f)) {
+			if (hit.collider.gameObject.CompareTag("Obstacles")){
+			print("There is something in front of the object!");
+			//Show the Ray and rotate the object
+			transform.Rotate(Vector3.up * Time.deltaTime* rotationSpeed, Space.World);
+			}
+			Debug.DrawRay (beginRayCastFront, fwd, Color.green);
+
+		}
+
+		//If the object isn't rotated towards the left rotate it back
+		/*if (transform.rotation.y !== 0){
+			//transform.rotation = Quaternion.Lerp(from.rotation, to.rotation, Time.time * speed);
+
+		}*/
+		//If the ship is too far off the map destroy it
+		if (tempShipLocation.x < -9.0f){
+			Destroy ();
+		}
+	}
+
+	void Destroy(){
+		Destroy(this.gameObject);
+	}
+}
